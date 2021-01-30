@@ -10,3 +10,9 @@
 [submodule "dependencies/Catch2"]
 	path = dependencies/Catch2
 	url = git@github.com:catchorg/Catch2
+[submodule "dependencies/imgui"]
+	path = dependencies/imgui
+	url = git@github.com:ocornut/imgui.git
+[submodule "dependencies/magic_enum"]
+	path = dependencies/magic_enum
+	url = git@github.com:Neargye/magic_enum.git

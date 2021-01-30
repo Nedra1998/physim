@@ -1,56 +1,42 @@
 #include <iostream>
 
 #include <cxxopts.hpp>
-#include <spdlog/sinks/stdout_color_sinks.h>
-#include <spdlog/sinks/stdout_sinks.h>
-#include <spdlog/spdlog.h>
-
-#if defined(_WIN32) || defined(_WIN64)
-#include <io.h>
-#include <windows.h>
-#elif defined(__APPLE__) || defined(__unix__) || defined(__unix)
-#include <unistd.h>
-#endif
 
 #include <physim/physim.hpp>
+
+#include "configure.hpp"
+#include "exit_code.hpp"
 
 int main(int argc, char *argv[]) {
   cxxopts::Options options("physim");
 
-  options.add_options()("h,help", "print this usage message")(
-      "c,color", "enable colored logging",
-      cxxopts::value<std::string>()->implicit_value("always")->default_value(
-          "auto"));
+  // clang-format off
+  options.add_options()
+    ("h,help", "print this usage message")
+#ifndef NDEBUG
+    ("G,no-gui", "disable the graphical user interface",
+      cxxopts::value<bool>()->implicit_value("false")->default_value("true"));
+#else
+    ("g,gui", "enable the graphical user interface",
+      cxxopts::value<bool>()->implicit_value("true")->default_value("false"));
+#endif
+
+  options.add_options("logging")
+    ("c,color", "enable colored logging",
+      cxxopts::value<std::string>()->implicit_value("always")->default_value("auto"))
+    ("v,verbose", "set verbosity of logging",
+      cxxopts::value<std::uint8_t>()->implicit_value("4")->default_value("2"));
+  // clang-format on
 
   auto result = options.parse(argc, argv);
   if (result.count("help")) {
     std::cout << options.help() << std::endl;
-    std::exit(0);
+    return OK;
   }
 
-  try {
-    spdlog::sink_ptr sink;
-#if defined(_WIN32) || defined(_WIN64)
-    bool isatty = _isatty(_fileno(stdout));
-#elif defined(__APPLE__) || defined(__unix__) || defined(__unix)
-    bool isatty = ::isatty(fileno(stdout)) != 0;
-#else
-    bool isatty = false;
-#endif
+  ExitCode exit_code = OK;
+  IF_OK(exit_code, initialize_logger(result["color"].as<std::string>(),
+                                     result["verbose"].as<std::uint8_t>()));
 
-    if (result["color"].as<std::string>() == "always" ||
-        (result["color"].as<std::string>() == "auto" && isatty)) {
-      sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-    } else {
-      sink = std::make_shared<spdlog::sinks::stdout_sink_mt>();
-    }
-    std::shared_ptr<spdlog::logger> default_logger =
-        std::make_shared<spdlog::logger>("VIS", sink);
-    spdlog::set_default_logger(default_logger);
-  } catch (const spdlog::spdlog_ex &ex) {
-    std::cerr << "Log initialization failed: " << ex.what() << std::endl;
-    return -1;
-  }
-  test();
-  return 0;
+  return OK;
 }
