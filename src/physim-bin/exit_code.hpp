@@ -5,7 +5,9 @@
 
 enum ExitCode {
   OK = 0,
-  INIT_LOG_ERROR,
+  ERR = 1,
+  SPDLOG_INIT_ERROR,
+  GLFW_INIT_ERROR,
 };
 
 #endif /* end of include guard: EXIT_CODE_HPP_3PDT5QSO */

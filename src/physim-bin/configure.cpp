@@ -45,7 +45,7 @@ ExitCode initialize_logger(const std::string &color,
     spdlog::set_default_logger(default_logger);
   } catch (const spdlog::spdlog_ex &ex) {
     std::cerr << "Log initialization failed: " << ex.what() << std::endl;
-    return INIT_LOG_ERROR;
+    return SPDLOG_INIT_ERROR;
   }
   return OK;
 }

@@ -16,8 +16,6 @@ file(GLOB_RECURSE CXX_INCLUDE CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.h
 set(SOURCES ${C_SOURCES} ${CXX_SOURCES})
 set(INCLUDE ${C_INCLUDE} ${CXX_INCLUDE})
 
-message("${C_SOURCES} -> ${SOURCES}")
-
 # --- Target ---
 
 add_executable(physim-bin ${SOURCES} ${INCLUDE})
