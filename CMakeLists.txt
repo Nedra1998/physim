@@ -52,6 +52,7 @@ endif(CCACHE_FOUND)
 # --- Source ---
 
 add_subdirectory(dependencies)
+add_subdirectory(utilities)
 add_subdirectory(src/physim)
 add_subdirectory(src/physim-bin)
 if(PHYSIM_BUILD_TESTS)

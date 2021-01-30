@@ -1,7 +1,11 @@
 #ifndef PHYSIM_GUI_HPP_
 #define PHYSIM_GUI_HPP_
 
-#include <optional>
+#include <map>
+#include <memory>
+#include <string>
+#include <vector>
+
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
@@ -11,17 +15,20 @@
 #include <imgui_impl_opengl3.h>
 
 #include "exit_code.hpp"
+#include "graphics/window.hpp"
 
 namespace graphics::gui {
-  ExitCode initialize(GLFWwindow* window);
-  ExitCode terminate();
-  void render();
-  void start_frame();
-  void end_frame();
+extern std::map<std::string,
+                std::vector<std::shared_ptr<graphics::gui::Window>>>
+    window_map;
+extern std::map<std::string, std::map<std::string, ImFont*>> font_map;
+ExitCode initialize(GLFWwindow *window);
+ExitCode terminate();
+void render();
+void start_frame();
+void end_frame();
 
-  void demo_window();
-  void plot_demo_window();
-
+void render_menu_bar();
 
 } // namespace graphics::gui
 

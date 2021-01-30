@@ -35,8 +35,9 @@ ExitCode graphics::run() {
     glfwPollEvents();
     gui::start_frame();
 
-    gui::demo_window();
-    gui::plot_demo_window();
+    gui::render_menu_bar();
+    // gui::demo_window();
+    // gui::plot_demo_window();
 
     gui::render();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
