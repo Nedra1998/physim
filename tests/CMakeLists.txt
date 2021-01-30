@@ -5,10 +5,8 @@ cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 # --- Dependencies ---
 
 include(cotire)
+include(Catch)
 include(EnableExtraCompilerWarnings)
-
-cpmaddpackage(NAME Catch2 GITHUB_REPOSITORY catchorg/Catch2 GIT_TAG
-              v3.0.0-preview3)
 
 # --- Sources ---
 
@@ -37,3 +35,4 @@ target_link_libraries(physim-test PUBLIC physim-lib Catch2::Catch2WithMain)
 
 enable_extra_compiler_warnings(physim-test)
 cotire(physim-test)
+catch_discover_tests(physim-test)

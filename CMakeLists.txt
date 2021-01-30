@@ -2,21 +2,25 @@
 
 cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 
-project(Vis VERSION 0.1.0 LANGUAGES CXX)
+project(PhySim VERSION 0.1.0 LANGUAGES CXX)
 
-# --- Dependencies ---
-
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-
-include(CPM)
-include(cotire)
-set(CPM_USE_LOCAL_PACKAGES ON)
-
-# --- Compile Commands ---
+# --- Build Type ---
 
 if("${CMAKE_GENERATOR}" MATCHES "Makefiles" AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "" FORCE)
 endif()
+
+# --- Root Project ---
+
+if(PROJECT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+  set(PHYSIM_MAIN ON)
+endif()
+
+# --- Options ---
+
+option(PHYSIM_BUILD_TESTS "Enable local test generation" ${PHYSIM_MAIN})
+
+# --- Compile Commands ---
 
 if("${CMAKE_BUILD_TYPE}" MATCHES "Debug|RelWithDebInfo")
   set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -27,6 +31,11 @@ if("${CMAKE_BUILD_TYPE}" MATCHES "Debug|RelWithDebInfo")
       ${PROJECT_SOURCE_DIR}/compile_commands.json)
   endif()
 endif()
+
+# --- Dependencies ---
+
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+include(cotire)
 
 # --- Utilities ---
 
@@ -42,6 +51,11 @@ endif(CCACHE_FOUND)
 
 # --- Source ---
 
-add_subdirectory(lib)
-add_subdirectory(bin)
-add_subdirectory(test)
+add_subdirectory(dependencies)
+add_subdirectory(src/physim)
+add_subdirectory(src/physim-bin)
+if(PHYSIM_BUILD_TESTS)
+  include(CTest)
+  enable_testing()
+  add_subdirectory(tests)
+endif()

@@ -3,9 +3,10 @@
 #include <catch2/catch_test_macros.hpp>
 #include <initializer_list>
 #include <limits>
-#include <linalg.hpp>
 
 #include <fmt/format.h>
+
+#include <physim/linalg.hpp>
 
 using Catch::Approx;
 using namespace physim::linalg;

@@ -12,10 +12,10 @@
 #include <unistd.h>
 #endif
 
-#include "vis.hpp"
+#include <physim/physim.hpp>
 
 int main(int argc, char *argv[]) {
-  cxxopts::Options options("vis");
+  cxxopts::Options options("physim");
 
   options.add_options()("h,help", "print this usage message")(
       "c,color", "enable colored logging",
