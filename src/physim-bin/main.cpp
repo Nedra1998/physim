@@ -4,43 +4,9 @@
 
 #include <physim/physim.hpp>
 
-#include "configure.hpp"
 #include "exit_code.hpp"
-
-#include <glad/glad.h>
-
-#include <GLFW/glfw3.h>
-
-ExitCode gui() {
-  GLFWwindow *window;
-
-  if (!glfwInit())
-    return GLFW_INIT_ERROR;
-
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-
-  window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
-  if (!window) {
-    glfwTerminate();
-    return ERR;
-  }
-
-  glfwMakeContextCurrent(window);
-  gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
-  glfwSwapInterval(1);
-
-  /* Loop until the user closes the window */
-  while (!glfwWindowShouldClose(window)) {
-    glClear(GL_COLOR_BUFFER_BIT);
-    glfwSwapBuffers(window);
-
-    glfwPollEvents();
-  }
-
-  glfwTerminate();
-  return OK;
-}
+#include "graphics/graphics.hpp"
+#include "logging.hpp"
 
 int main(int argc, char *argv[]) {
   cxxopts::Options options("physim");
@@ -70,11 +36,11 @@ int main(int argc, char *argv[]) {
   }
 
   ExitCode exit_code = OK;
-  IF_OK(exit_code, initialize_logger(result["color"].as<std::string>(),
-                                     result["verbose"].as<std::uint8_t>()));
+  IF_OK(exit_code, logging::initialize(result["color"].as<std::string>(),
+                                       result["verbose"].as<std::uint8_t>()));
 
   if (result["gui"].as<bool>() == true) {
-    IF_OK(exit_code, gui());
+    IF_OK(exit_code, graphics::run());
   }
 
   return OK;

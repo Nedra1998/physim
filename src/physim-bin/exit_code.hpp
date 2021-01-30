@@ -8,6 +8,8 @@ enum ExitCode {
   ERR = 1,
   SPDLOG_INIT_ERROR,
   GLFW_INIT_ERROR,
+  GLFW_CREATE_WINDOW_ERROR,
+  GL_LOAD_ERROR
 };
 
 #endif /* end of include guard: EXIT_CODE_HPP_3PDT5QSO */

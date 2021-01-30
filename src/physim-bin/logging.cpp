@@ -1,5 +1,7 @@
-#include <iostream>
+#include "logging.hpp"
+
 #include <cstdint>
+#include <iostream>
 #include <string>
 
 #include <magic_enum.hpp>
@@ -16,10 +18,13 @@
 
 #include "exit_code.hpp"
 
-ExitCode initialize_logger(const std::string &color,
-                            const std::uint8_t &verbose) {
+namespace logging {
+spdlog::sink_ptr sink = nullptr;
+} // namespace logging
+
+ExitCode logging::initialize(const std::string &color,
+                             const std::uint8_t &verbose) {
   try {
-    spdlog::sink_ptr sink;
 #if defined(_WIN32) || defined(_WIN64)
     bool isatty = _isatty(_fileno(stdout));
 #elif defined(__APPLE__) || defined(__unix__) || defined(__unix)
