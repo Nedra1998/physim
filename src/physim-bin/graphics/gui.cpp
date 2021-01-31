@@ -18,6 +18,7 @@
 
 #include "exit_code.hpp"
 #include "graphics/window.hpp"
+#include "graphics/colors.hpp"
 
 #include "iosevka_bold.h"
 #include "iosevka_bold_italic.h"
@@ -84,6 +85,9 @@ ExitCode graphics::gui::initialize(GLFWwindow *window) {
   window_map["\uf5e3 Debug"].push_back(std::make_shared<ImGuiDemoWindow>());
   window_map["\uf5e3 Debug"].push_back(std::make_shared<ImPlotDemoWindow>());
 #endif
+  window_map["\uf5e3 Debug"].push_back(std::make_shared<SpdlogWindow>());
+
+  colors::set_colors();
 
   return ExitCode::OK;
 }

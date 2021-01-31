@@ -1,4 +1,5 @@
 #include "graphics.hpp"
+#include "magic_enum.hpp"
 #include "spdlog/common.h"
 #include "spdlog/logger.h"
 #include "spdlog/spdlog.h"
@@ -31,18 +32,26 @@ ExitCode graphics::run() {
 
   glClearColor(0.0, 0.0, 0.0, 1.0);
 
+  int i = 0, j = 0;
   while (!glfwWindowShouldClose(window)) {
     glfwPollEvents();
     gui::start_frame();
 
     gui::render_menu_bar();
-    // gui::demo_window();
-    // gui::plot_demo_window();
 
     gui::render();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     gui::end_frame();
     glfwSwapBuffers(window);
+
+    // if (i == 5) {
+    auto level = magic_enum::enum_cast<spdlog::level::level_enum>(rand() % 6)
+                     .value_or(spdlog::level::err);
+    spdlog::log(level, "This is test message #{:5}", j);
+    // i = 0;
+    j++;
+    // }
+    // i++;
   }
 
   IF_OK(exit_code, terminate());

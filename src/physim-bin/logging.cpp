@@ -20,6 +20,7 @@
 
 namespace logging {
 spdlog::sink_ptr sink = nullptr;
+std::shared_ptr<spdlog::logger> default_logger = nullptr;
 } // namespace logging
 
 ExitCode logging::initialize(const std::string &color,
@@ -42,11 +43,13 @@ ExitCode logging::initialize(const std::string &color,
     std::optional<spdlog::level::level_enum> verbosity =
         magic_enum::enum_cast<spdlog::level::level_enum>(
             magic_enum::enum_integer(spdlog::level::level_enum::off) - verbose);
-    if (verbosity.has_value())
+    if (verbosity.has_value()) {
+      fmt::print(">>{} -> {}\n", verbose, verbosity.value());
       sink->set_level(verbosity.value());
+    }
 
-    std::shared_ptr<spdlog::logger> default_logger =
-        std::make_shared<spdlog::logger>("physim", sink);
+    default_logger = std::make_shared<spdlog::logger>("physim", sink);
+    default_logger->set_level(spdlog::level::trace);
     spdlog::set_default_logger(default_logger);
   } catch (const spdlog::spdlog_ex &ex) {
     std::cerr << "Log initialization failed: " << ex.what() << std::endl;
