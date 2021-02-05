@@ -1,7 +1,7 @@
 #include "physim.hpp"
 // #include <Eigen/Dense>
 
-#include "log.hpp"
+#include "logging.hpp"
 #include "linalg.hpp"
 
 void test() {

@@ -8,6 +8,7 @@
 #include <glad/glad.h>
 
 #include "exit_code.hpp"
+
 namespace graphics {
 extern GLFWwindow *window;
 ExitCode run();

@@ -11,11 +11,12 @@
 #include <glad/glad.h>
 
 #include <imgui.h>
+#include <implot.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
 #include "exit_code.hpp"
-#include "graphics/window.hpp"
+#include "graphics/windows/base.hpp"
 
 namespace graphics::gui {
 extern std::map<std::string,
@@ -24,6 +25,9 @@ extern std::map<std::string,
 extern std::map<std::string, std::map<std::string, ImFont*>> font_map;
 ExitCode initialize(GLFWwindow *window);
 ExitCode terminate();
+
+void register_windows();
+
 void render();
 void start_frame();
 void end_frame();

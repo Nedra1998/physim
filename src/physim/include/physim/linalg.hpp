@@ -8,7 +8,7 @@
 #include <fmt/format.h>
 #include <stdexcept>
 
-#include "log.hpp"
+#include "logging.hpp"
 
 namespace physim::linalg {
 namespace detail {

@@ -1,6 +1,5 @@
 #include "gui.hpp"
 
-#include <cstdio>
 #include <map>
 #include <memory>
 #include <string>
@@ -14,11 +13,14 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include <implot.h>
-#include <spdlog/spdlog.h>
 
 #include "exit_code.hpp"
-#include "graphics/window.hpp"
 #include "graphics/colors.hpp"
+#include "graphics/windows/base.hpp"
+#include "logging.hpp"
+
+#include "graphics/windows/demo.hpp"
+#include "graphics/windows/log.hpp"
 
 #include "iosevka_bold.h"
 #include "iosevka_bold_italic.h"
@@ -79,15 +81,11 @@ ExitCode graphics::gui::initialize(GLFWwindow *window) {
   ImGui::StyleColorsDark();
   ImGui_ImplGlfw_InitForOpenGL(window, true);
   ImGui_ImplOpenGL3_Init("#version 150");
-  SPDLOG_INFO("Created DearImGUI context");
-
-#ifndef NDEBUG
-  window_map["\uf5e3 Debug"].push_back(std::make_shared<ImGuiDemoWindow>());
-  window_map["\uf5e3 Debug"].push_back(std::make_shared<ImPlotDemoWindow>());
-#endif
-  window_map["\uf5e3 Debug"].push_back(std::make_shared<SpdlogWindow>());
+  LINFO("physim-bin", "Created DearImGUI context");
 
   colors::set_colors();
+
+  register_windows();
 
   return ExitCode::OK;
 }
@@ -96,8 +94,16 @@ ExitCode graphics::gui::terminate() {
   ImGui_ImplGlfw_Shutdown();
   ImPlot::DestroyContext();
   ImGui::DestroyContext();
-  SPDLOG_INFO("Destroyed DearImGUI context");
+  LINFO("physim-bin", "Destroyed DearImGUI context");
   return ExitCode::OK;
+}
+
+void graphics::gui::register_windows() {
+#ifndef NDEBUG
+  window_map["\uf5e3 Debug"].push_back(std::make_shared<ImGuiDemoWindow>());
+  window_map["\uf5e3 Debug"].push_back(std::make_shared<ImPlotDemoWindow>());
+#endif
+  window_map["\uf5e3 Debug"].push_back(std::make_shared<SpdlogWindow>());
 }
 
 void graphics::gui::render() { ImGui::Render(); }
@@ -140,15 +146,3 @@ void graphics::gui::render_menu_bar() {
     }
   }
 }
-
-// static bool show_demo_window = true;
-// void graphics::gui::demo_window() {
-//   if (show_demo_window)
-//     ImGui::ShowDemoWindow(&show_demo_window);
-// }
-//
-// static bool show_plot_demo_window = true;
-// void graphics::gui::plot_demo_window() {
-//   if (show_plot_demo_window)
-//     ImPlot::ShowDemoWindow(&show_plot_demo_window);
-// }

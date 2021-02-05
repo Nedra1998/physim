@@ -1,9 +1,10 @@
 #ifndef PHYSIM_GRAPHICS_COLORS_HPP_
 #define PHYSIM_GRAPHICS_COLORS_HPP_
 
-#include "imgui.h"
 #include <map>
 #include <string>
+
+#include <imgui.h>
 
 namespace graphics::colors {
 enum Pallet { ONE_DARK, ONE_LIGHT };
@@ -35,36 +36,36 @@ static const std::map<std::string, std::string> one_light = {
     {"brightCyan", "#56b6c2"},  {"brightOrange", "#d19a66"}};
 
 enum ImTermCol_ {
-    ImTermCol_Foreground,
-    ImTermCol_Background,
-    ImTermCol_Black,
-    ImTermCol_Red,
-    ImTermCol_Green,
-    ImTermCol_Yellow,
-    ImTermCol_Blue,
-    ImTermCol_Magenta,
-    ImTermCol_Cyan,
-    ImTermCol_White,
-    ImTermCol_BrightBlack,
-    ImTermCol_BrightRed,
-    ImTermCol_BrightGreen,
-    ImTermCol_BrightYellow,
-    ImTermCol_BrightBlue,
-    ImTermCol_BrightMagenta,
-    ImTermCol_BrightCyan,
-    ImTermCol_BrightWhite,
-    ImTermCol_COUNT
+  ImTermCol_Foreground,
+  ImTermCol_Background,
+  ImTermCol_Black,
+  ImTermCol_Red,
+  ImTermCol_Green,
+  ImTermCol_Yellow,
+  ImTermCol_Blue,
+  ImTermCol_Magenta,
+  ImTermCol_Cyan,
+  ImTermCol_White,
+  ImTermCol_BrightBlack,
+  ImTermCol_BrightRed,
+  ImTermCol_BrightGreen,
+  ImTermCol_BrightYellow,
+  ImTermCol_BrightBlue,
+  ImTermCol_BrightMagenta,
+  ImTermCol_BrightCyan,
+  ImTermCol_BrightWhite,
+  ImTermCol_COUNT
 };
 extern ImVec4 ImTermColors[ImTermCol_COUNT];
 
 enum ImLogCol_ {
-    ImLogCol_Trace = 0,
-    ImLogCol_Debug = 1,
-    ImLogCol_Info = 2,
-    ImLogCol_Warning = 3,
-    ImLogCol_Error = 4,
-    ImLogCol_Critical = 5,
-    ImLogCol_COUNT
+  ImLogCol_Trace = 0,
+  ImLogCol_Debug = 1,
+  ImLogCol_Info = 2,
+  ImLogCol_Warning = 3,
+  ImLogCol_Error = 4,
+  ImLogCol_Critical = 5,
+  ImLogCol_COUNT
 };
 extern ImVec4 ImLogColors[ImLogCol_COUNT];
 

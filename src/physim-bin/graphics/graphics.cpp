@@ -1,14 +1,11 @@
 #include "graphics.hpp"
-#include "magic_enum.hpp"
-#include "spdlog/common.h"
-#include "spdlog/logger.h"
-#include "spdlog/spdlog.h"
 #include <chrono>
 #include <thread>
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
+#include <magic_enum.hpp>
 
 #include "exit_code.hpp"
 #include "gui.hpp"
@@ -52,11 +49,11 @@ ExitCode graphics::run() {
 }
 ExitCode graphics::initialize(const std::string &title, unsigned width,
                               unsigned height) {
-  glfw_logger = std::make_shared<spdlog::logger>("glfw", logging::sink);
+  glfw_logger = std::make_shared<spdlog::logger>("glfw", physim::logging::dist_sink);
   glfwSetErrorCallback(glfw_error_callback);
 
   if (!glfwInit()) {
-    SPDLOG_CRITICAL("Failed to initialize GLFW");
+    LCRITICAL("physim-bin", "Failed to initialize GLFW");
     return GLFW_INIT_ERROR;
   }
 
@@ -66,27 +63,27 @@ ExitCode graphics::initialize(const std::string &title, unsigned width,
   window = glfwCreateWindow(static_cast<int>(width), static_cast<int>(height),
                             title.c_str(), NULL, NULL);
   if (!window) {
-    SPDLOG_CRITICAL("Failed to create GLFW window");
+    LCRITICAL("physim-bin", "Failed to create GLFW window");
     glfwTerminate();
     return GLFW_CREATE_WINDOW_ERROR;
   }
-  SPDLOG_INFO("Created GLFW window {} ({}x{})", title, width, height);
+  LINFO("physim-bin", "Created GLFW window {} ({}x{})", title, width, height);
 
   glfwMakeContextCurrent(window);
 
   if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress))) {
-    SPDLOG_CRITICAL("Failed to initialize OpenGL context");
+    LCRITICAL("physim-bin", "Failed to initialize OpenGL context");
     return GL_LOAD_ERROR;
   }
   glfwSwapInterval(1);
-  SPDLOG_INFO("Initialized OpenGL {}.{} context", 3, 2);
+  LINFO("physim-bin", "Initialized OpenGL {}.{} context", 3, 2);
   return gui::initialize(window);
 }
 ExitCode graphics::terminate() {
   ExitCode exit_code = gui::terminate();
   glfwDestroyWindow(window);
-  SPDLOG_INFO("Destroyed GLFW window");
+  LINFO("physim-bin", "Destroyed GLFW window");
   glfwTerminate();
-  SPDLOG_INFO("Terminated other GLFW resources");
+  LINFO("physim-bin", "Terminated other GLFW resources");
   return exit_code;
 }

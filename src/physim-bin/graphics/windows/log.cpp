@@ -1,44 +1,18 @@
-#include "window.hpp"
+#include "log.hpp"
 
-#include <algorithm>
-#include <chrono>
 #include <fmt/chrono.h>
-#include <fmt/format.h>
 #include <imgui.h>
 #include <imgui_stdlib.h>
 #include <implot.h>
-#include <regex>
+#include <magic_enum.hpp>
 
-#include "colors.hpp"
-#include "gui.hpp"
+#include "graphics/colors.hpp"
 #include "logging.hpp"
-#include "magic_enum.hpp"
-#include "spdlog/common.h"
 
-void graphics::gui::ImGuiDemoWindow::render() {
-  if (show_window) {
-    SPDLOG_TRACE("Rendering ImGui window \"{}\"", window_title);
-    ImGui::ShowDemoWindow(&show_window);
-  }
-}
-void graphics::gui::ImPlotDemoWindow::render() {
-  if (show_window) {
-    SPDLOG_TRACE("Rendering ImGui window \"{}\"", window_title);
-    ImPlot::ShowDemoWindow(&show_window);
-  }
-}
-
-// const ImGuiTableSortSpecs *graphics::gui::SpdlogWindow::current_sort_specs =
-// nullptr;
 graphics::gui::SpdlogWindow::SpdlogWindow(std::size_t buffer)
     : Window("\uf529 Logs", 0, true), buffer_size(buffer),
-      sink(std::make_shared<logging::buffer_sink_mt>(buffer)) {
-  logging::default_logger->sinks().push_back(sink);
-}
-graphics::gui::SpdlogWindow::~SpdlogWindow() {
-  auto sinks = logging::default_logger->sinks();
-  sinks.erase(std::remove(sinks.begin(), sinks.end(), sink), sinks.end());
-}
+      sink(physim::logging::_buffer_sink) {}
+graphics::gui::SpdlogWindow::~SpdlogWindow() {}
 void graphics::gui::SpdlogWindow::draw() {
 
   if (!regex_filter.has_value() && !compiled_regex_str.empty())
@@ -99,11 +73,10 @@ void graphics::gui::SpdlogWindow::draw() {
     if (!sink->buffer.empty()) {
       const std::lock_guard<std::mutex> lock(sink->buffer_mutex);
       for (auto &msg : sink->buffer) {
-        std::vector<logging::LogMsg>::iterator it = std::upper_bound(
+        std::vector<physim::logging::LogMsg>::iterator it = std::upper_bound(
             buffer.begin(), buffer.end(), msg,
-            [&](const logging::LogMsg &a, const logging::LogMsg &b) {
-              return this->sort(a, b);
-            });
+            [&](const physim::logging::LogMsg &a,
+                const physim::logging::LogMsg &b) { return this->sort(a, b); });
         if (it != buffer.end())
           buffer.insert(it, msg);
         else
@@ -114,12 +87,13 @@ void graphics::gui::SpdlogWindow::draw() {
 
     if (buffer.size() > buffer_size) {
       for (std::size_t i = 0; i < buffer.size() - buffer_size; ++i) {
-        std::vector<logging::LogMsg>::iterator it = std::min_element(
-            buffer.begin(), buffer.end(),
-            [](const logging::LogMsg &lhs, const logging::LogMsg &rhs) {
-              return lhs.time.time_since_epoch().count() <
-                     rhs.time.time_since_epoch().count();
-            });
+        std::vector<physim::logging::LogMsg>::iterator it =
+            std::min_element(buffer.begin(), buffer.end(),
+                             [](const physim::logging::LogMsg &lhs,
+                                const physim::logging::LogMsg &rhs) {
+                               return lhs.time.time_since_epoch().count() <
+                                      rhs.time.time_since_epoch().count();
+                             });
         if (it != buffer.end())
           buffer.erase(it);
       }
@@ -128,10 +102,10 @@ void graphics::gui::SpdlogWindow::draw() {
     ImGuiTableSortSpecs *sort_specs = ImGui::TableGetSortSpecs();
     if (sort_specs != nullptr && sort_specs->SpecsDirty) {
       current_sort_specs = sort_specs;
-      std::sort(buffer.begin(), buffer.end(),
-                [&](const logging::LogMsg &a, const logging::LogMsg &b) {
-                  return this->sort(a, b);
-                });
+      std::sort(
+          buffer.begin(), buffer.end(),
+          [&](const physim::logging::LogMsg &a,
+              const physim::logging::LogMsg &b) { return this->sort(a, b); });
       sort_specs->SpecsDirty = false;
     }
 
@@ -152,7 +126,7 @@ void graphics::gui::SpdlogWindow::draw() {
     }
 
     for (std::size_t i = 0; i < buffer.size(); ++i) {
-      logging::LogMsg *msg = &buffer[i];
+      physim::logging::LogMsg *msg = &buffer[i];
 
       if (msg->level < level_filter)
         continue;
@@ -194,21 +168,11 @@ void graphics::gui::SpdlogWindow::draw() {
     }
 
     ImGui::EndTable();
-    // static bool items_need_sort = false;
-    // if (items.Size != static_cast<int>(sink->buffer.size())) {
-    //   items.resize(static_cast<int>(sink->buffer.size()), logging::LogMsg());
-    //   for(int n = 0; n < items.Size; ++n) {
-    //     logging::LogMsg& msg = items[n];
-    //
-    //   }
-    // }
   }
 }
 
-bool graphics::gui::SpdlogWindow::sort(const logging::LogMsg &a,
-                                       const logging::LogMsg &b) const {
-  // const logging::LogMsg *a = lhs < buffer.size() ? &buffer[lhs] : nullptr;
-  // const logging::LogMsg *b = rhs < buffer.size() ? &buffer[rhs] : nullptr;
+bool graphics::gui::SpdlogWindow::sort(const physim::logging::LogMsg &a,
+                                       const physim::logging::LogMsg &b) const {
   if (current_sort_specs != nullptr) {
     for (int i = 0; i < current_sort_specs->SpecsCount; ++i) {
       const ImGuiTableColumnSortSpecs *spec = &current_sort_specs->Specs[i];
@@ -249,34 +213,3 @@ bool graphics::gui::SpdlogWindow::sort(const logging::LogMsg &a,
   }
   return (a.time - b.time).count() > 0;
 }
-// bool graphics::gui::SpdlogWindow::compare_with_sort(
-//     const logging::LogMsg &lhs, const logging::LogMsg &rhs) {
-//   if (current_sort_specs != nullptr)
-//     for (int n = 0; n < current_sort_specs->SpecsCount; ++n) {
-//       const ImGuiTableColumnSortSpecs *sort_spec =
-//           &current_sort_specs->Specs[n];
-//       long delta = 0;
-//       switch (sort_spec->ColumnUserID) {
-//       case TIMESTAMP:
-//         delta = (lhs.time - rhs.time);
-//         break;
-//       case LEVEL:
-//         delta = (lhs.level - rhs.level);
-//         break;
-//       case MSG:
-//         delta = (strcmp(lhs.buffer, rhs.buffer));
-//         break;
-//       default:
-//         break;
-//       }
-//       if (delta > 0)
-//         return (sort_spec->SortDirection == ImGuiSortDirection_Ascending) ?
-//         +1
-//                                                                           :
-//                                                                           -1;
-//       return (sort_spec->SortDirection == ImGuiSortDirection_Ascending) ? -1
-//                                                                         : +1;
-//     }
-//
-//   return ((lhs.time - rhs.time) > 0) ? +1 : -1;
-// }

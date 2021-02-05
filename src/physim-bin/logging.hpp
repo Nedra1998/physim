@@ -1,24 +1,9 @@
-#ifndef PHYSIM_LOGGING_HPP_
-#define PHYSIM_LOGGING_HPP_
+#ifndef PHYSIM_BIN_LOGGING_HPP_
+#define PHYSIM_BIN_LOGGING_HPP_
 
-#include "exit_code.hpp"
-#include "fmt/chrono.h"
-#include "fmt/format.h"
-#include "spdlog/common.h"
-#include "spdlog/details/log_msg.h"
-#include "spdlog/details/null_mutex.h"
-#include "spdlog/logger.h"
-#include "spdlog/sinks/base_sink.h"
+#include <physim/logging.hpp>
 
-#include <cstdint>
-#include <mutex>
-#include <string>
-
-namespace logging {
-extern spdlog::sink_ptr sink;
-extern std::shared_ptr<spdlog::logger> default_logger;
-ExitCode initialize(const std::string &color, const std::uint8_t &verbose);
-
+namespace physim::logging {
 struct LogMsg {
   spdlog::level::level_enum level;
   std::size_t thread_id;
@@ -39,8 +24,6 @@ public:
 
 protected:
   void sink_it_(const spdlog::details::log_msg &msg) override {
-    // spdlog::memory_buf_t formatted;
-    // spdlog::sinks::base_sink<Mutex>::formatter_->format(msg, formatted);
     if (buffer.size() < buffer_size) {
       const std::lock_guard<std::mutex> lock(buffer_mutex);
       buffer.push_back(
@@ -56,6 +39,8 @@ protected:
 };
 using buffer_sink_mt = buffer_sink<std::mutex>;
 using buffer_sink_st = buffer_sink<spdlog::details::null_mutex>;
-} // namespace logging
 
-#endif // PHYSIM_LOGGING_HPP_
+extern std::shared_ptr<buffer_sink_mt> _buffer_sink;
+} // namespace physim::logging
+
+#endif /* end of include guard: PHYSIM_BIN_LOGGING_HPP_ */

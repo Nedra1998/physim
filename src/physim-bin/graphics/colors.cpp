@@ -1,6 +1,6 @@
 #include "colors.hpp"
-#include "fmt/ostream.h"
-#include "imgui.h"
+
+#include <imgui.h>
 
 static graphics::colors::Pallet color_pallet = graphics::colors::ONE_DARK;
 
