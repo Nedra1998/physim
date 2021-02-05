@@ -5,6 +5,7 @@
 #include "spdlog/common.h"
 #include <algorithm>
 #include <chrono>
+#include <regex>
 #include <string>
 
 #include <imgui.h>
@@ -76,13 +77,16 @@ public:
   inline void draw() override;
 
 private:
-  // static bool compare_with_sort(const logging::LogMsg &a,
-  //                               const logging::LogMsg &b);
-  // static const ImGuiTableSortSpecs *current_sort_specs;
+  bool sort(const logging::LogMsg& lhs, const logging::LogMsg& rhs) const;
+  const ImGuiTableSortSpecs *current_sort_specs = nullptr;
 
   std::size_t buffer_size;
   std::shared_ptr<logging::buffer_sink_mt> sink;
   std::vector<logging::LogMsg> buffer;
+  std::string regex_filter_str = "";
+  std::string compiled_regex_str = "";
+  std::optional<std::regex> regex_filter;
+  int level_filter = spdlog::level::level_enum::trace;
 };
 } // namespace graphics::gui
 

@@ -5,7 +5,9 @@
 #include <fmt/chrono.h>
 #include <fmt/format.h>
 #include <imgui.h>
+#include <imgui_stdlib.h>
 #include <implot.h>
+#include <regex>
 
 #include "colors.hpp"
 #include "gui.hpp"
@@ -38,6 +40,21 @@ graphics::gui::SpdlogWindow::~SpdlogWindow() {
   sinks.erase(std::remove(sinks.begin(), sinks.end(), sink), sinks.end());
 }
 void graphics::gui::SpdlogWindow::draw() {
+
+  if (!regex_filter.has_value() && !compiled_regex_str.empty())
+    ImGui::PushStyleColor(ImGuiCol_Text,
+                          colors::ImLogColors[spdlog::level::level_enum::err]);
+  ImGui::InputTextWithHint("##Filter", "Regex log filter...",
+                           &regex_filter_str);
+  if (!regex_filter.has_value() && !compiled_regex_str.empty())
+    ImGui::PopStyleColor();
+
+  ImGui::SameLine();
+  const char *log_level_names[] = {"Trace", "Debug",    "Info", "Warning",
+                                   "Error", "Critical", "Off"};
+  ImGui::Combo("##Level", &level_filter, log_level_names,
+               sizeof(log_level_names) / sizeof(*log_level_names));
+
   if (ImGui::BeginTable(
           "log_table", 8,
           ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable |
@@ -79,40 +96,74 @@ void graphics::gui::SpdlogWindow::draw() {
     ImGui::TableSetupScrollFreeze(0, 1);
     ImGui::TableHeadersRow();
 
-    // bool should_sort = false;
-
     if (!sink->buffer.empty()) {
       const std::lock_guard<std::mutex> lock(sink->buffer_mutex);
       for (auto &msg : sink->buffer) {
-        // std::vector<logging::LogMsg>::iterator it = std::upper_bound(
-        //     buffer.begin(), buffer.end(), msg, compare_with_sort);
-        // if (it != buffer.end())
-        //   buffer.insert(it, msg);
-        // else
-        buffer.push_back(msg);
+        std::vector<logging::LogMsg>::iterator it = std::upper_bound(
+            buffer.begin(), buffer.end(), msg,
+            [&](const logging::LogMsg &a, const logging::LogMsg &b) {
+              return this->sort(a, b);
+            });
+        if (it != buffer.end())
+          buffer.insert(it, msg);
+        else
+          buffer.push_back(msg);
       }
       sink->buffer.clear();
     }
 
     if (buffer.size() > buffer_size) {
-      buffer.erase(buffer.begin(),
-                   buffer.begin() +
-                       static_cast<long>(buffer.size() - buffer_size));
+      for (std::size_t i = 0; i < buffer.size() - buffer_size; ++i) {
+        std::vector<logging::LogMsg>::iterator it = std::min_element(
+            buffer.begin(), buffer.end(),
+            [](const logging::LogMsg &lhs, const logging::LogMsg &rhs) {
+              return lhs.time.time_since_epoch().count() <
+                     rhs.time.time_since_epoch().count();
+            });
+        if (it != buffer.end())
+          buffer.erase(it);
+      }
     }
 
-    // ImGuiTableSortSpecs *sort_specs = ImGui::TableGetSortSpecs();
-    // if (sort_specs && sort_specs->SpecsDirty) {
-    //   current_sort_specs = sort_specs;
-    //   should_sort = true;
-    // }
-    // if (should_sort && buffer.size() > 1) {
-    //   std::sort(buffer.begin(), buffer.end(), compare_with_sort);
-    //   if (sort_specs)
-    //     sort_specs->SpecsDirty = false;
-    // }
+    ImGuiTableSortSpecs *sort_specs = ImGui::TableGetSortSpecs();
+    if (sort_specs != nullptr && sort_specs->SpecsDirty) {
+      current_sort_specs = sort_specs;
+      std::sort(buffer.begin(), buffer.end(),
+                [&](const logging::LogMsg &a, const logging::LogMsg &b) {
+                  return this->sort(a, b);
+                });
+      sort_specs->SpecsDirty = false;
+    }
+
+    if (regex_filter_str.size() != 0) {
+      if (regex_filter_str != compiled_regex_str.data()) {
+        compiled_regex_str = regex_filter_str;
+        regex_filter = std::optional<std::regex>();
+        try {
+          regex_filter = std::regex(compiled_regex_str,
+                                    std::regex::optimize | std::regex::nosubs);
+        } catch (std::regex_error err) {
+          SPDLOG_DEBUG("Invalid RegEx \"{}\"", compiled_regex_str);
+        }
+      }
+    } else if (regex_filter.has_value()) {
+      compiled_regex_str = std::string();
+      regex_filter = std::optional<std::regex>();
+    }
 
     for (std::size_t i = 0; i < buffer.size(); ++i) {
-      logging::LogMsg *msg = &buffer[buffer.size() - 1 - i];
+      logging::LogMsg *msg = &buffer[i];
+
+      if (msg->level < level_filter)
+        continue;
+
+      if (regex_filter.has_value()) {
+        if (!std::regex_search(msg->filename, regex_filter.value()) &&
+            !std::regex_search(msg->funcname, regex_filter.value()) &&
+            !std::regex_search(msg->payload, regex_filter.value()))
+          continue;
+      }
+
       ImGui::PushID(static_cast<int>(i));
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
@@ -154,6 +205,50 @@ void graphics::gui::SpdlogWindow::draw() {
   }
 }
 
+bool graphics::gui::SpdlogWindow::sort(const logging::LogMsg &a,
+                                       const logging::LogMsg &b) const {
+  // const logging::LogMsg *a = lhs < buffer.size() ? &buffer[lhs] : nullptr;
+  // const logging::LogMsg *b = rhs < buffer.size() ? &buffer[rhs] : nullptr;
+  if (current_sort_specs != nullptr) {
+    for (int i = 0; i < current_sort_specs->SpecsCount; ++i) {
+      const ImGuiTableColumnSortSpecs *spec = &current_sort_specs->Specs[i];
+      int delta = 0;
+      switch (spec->ColumnUserID) {
+      case TIMESTAMP:
+        delta = ((a.time - b.time).count() > 0) ? +1 : -1;
+        break;
+      case LEVEL:
+        delta = static_cast<int>(a.level) - static_cast<int>(b.level);
+        break;
+      case FILENAME:
+        delta = a.filename.compare(b.filename);
+        break;
+      case FUNCNAME:
+        delta = a.funcname.compare(b.funcname);
+        break;
+      case LINE:
+        delta = (a.line - b.line);
+        break;
+      case THREAD:
+        delta = static_cast<int>(a.thread_id) - static_cast<int>(b.thread_id);
+        break;
+      case LOGGER:
+        delta = a.logger_name.compare(b.logger_name);
+        break;
+      case MSG:
+        delta = a.payload.compare(b.payload);
+        break;
+      }
+      if (delta > 0)
+        return (spec->SortDirection == ImGuiSortDirection_Ascending) ? true
+                                                                     : false;
+      else if (delta < 0)
+        return (spec->SortDirection == ImGuiSortDirection_Ascending) ? false
+                                                                     : true;
+    }
+  }
+  return (a.time - b.time).count() > 0;
+}
 // bool graphics::gui::SpdlogWindow::compare_with_sort(
 //     const logging::LogMsg &lhs, const logging::LogMsg &rhs) {
 //   if (current_sort_specs != nullptr)
