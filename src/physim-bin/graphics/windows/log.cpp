@@ -18,6 +18,7 @@ void graphics::gui::SpdlogWindow::draw() {
   if (!regex_filter.has_value() && !compiled_regex_str.empty())
     ImGui::PushStyleColor(ImGuiCol_Text,
                           colors::ImLogColors[spdlog::level::level_enum::err]);
+  ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.7f);
   ImGui::InputTextWithHint("##Filter", "Regex log filter...",
                            &regex_filter_str);
   if (!regex_filter.has_value() && !compiled_regex_str.empty())
@@ -26,6 +27,7 @@ void graphics::gui::SpdlogWindow::draw() {
   ImGui::SameLine();
   const char *log_level_names[] = {"Trace", "Debug",    "Info", "Warning",
                                    "Error", "Critical", "Off"};
+  ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.25f);
   ImGui::Combo("##Level", &level_filter, log_level_names,
                sizeof(log_level_names) / sizeof(*log_level_names));
 

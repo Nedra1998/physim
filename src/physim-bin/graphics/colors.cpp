@@ -68,7 +68,7 @@ void graphics::colors::set_colors() {
   colors[ImGuiCol_PopupBg] = hex("bg1");
   colors[ImGuiCol_Border] = hex("bg4");
   colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-  colors[ImGuiCol_FrameBg] = colors[ImGuiCol_WindowBg];
+  colors[ImGuiCol_FrameBg] = colors[ImGuiCol_PopupBg];
   colors[ImGuiCol_FrameBgHovered] = hex("bg2");
   colors[ImGuiCol_FrameBgActive] = colors[ImGuiCol_FrameBgHovered];
   colors[ImGuiCol_TitleBg] = colors[ImGuiCol_WindowBg];

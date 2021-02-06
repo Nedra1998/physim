@@ -31,9 +31,9 @@ public:
     THREAD,
     LOGGER
   };
-  SpdlogWindow(std::size_t buffer = 100);
+  SpdlogWindow(std::size_t buffer = 1000);
   virtual ~SpdlogWindow();
-  inline void draw() override;
+  void draw() override;
 
 private:
   bool sort(const physim::logging::LogMsg &lhs,

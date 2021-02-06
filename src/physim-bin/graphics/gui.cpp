@@ -21,6 +21,7 @@
 
 #include "graphics/windows/demo.hpp"
 #include "graphics/windows/log.hpp"
+#include "graphics/windows/sysinfo.hpp"
 
 #include "iosevka_bold.h"
 #include "iosevka_bold_italic.h"
@@ -104,6 +105,7 @@ void graphics::gui::register_windows() {
   window_map["\uf5e3 Debug"].push_back(std::make_shared<ImPlotDemoWindow>());
 #endif
   window_map["\uf5e3 Debug"].push_back(std::make_shared<SpdlogWindow>());
+  window_map["\uf5e3 Debug"].push_back(std::make_shared<SysInfoWindow>());
 }
 
 void graphics::gui::render() { ImGui::Render(); }
@@ -142,6 +144,7 @@ void graphics::gui::render_menu_bar() {
   }
   for (auto &it : window_map) {
     for (auto &win : it.second) {
+      win->update();
       win->render();
     }
   }
